@@ -2,7 +2,6 @@
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_FUGR" serializer_version="v1.0.0">
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
-   <AREAT>多ALV显示</AREAT>
    <INCLUDES>
     <SOBJ_NAME>LZFG_ALV_MULTICLD</SOBJ_NAME>
     <SOBJ_NAME>LZFG_ALV_MULTICLI</SOBJ_NAME>
@@ -13,7 +12,7 @@
    <FUNCTIONS>
     <item>
      <FUNCNAME>ZFM_ALV_MULTI_DISPLAY</FUNCNAME>
-     <SHORT_TEXT>多ALV显示</SHORT_TEXT>
+     <SHORT_TEXT>DISPLAY MULTI ALV</SHORT_TEXT>
      <IMPORT>
       <RSIMP>
        <PARAMETER>IO_ALV</PARAMETER>
@@ -111,8 +110,8 @@
      <HEADER>
       <PROGRAM>SAPLZFG_ALV_MULTI</PROGRAM>
       <SCREEN>9000</SCREEN>
-      <LANGUAGE>1</LANGUAGE>
-      <DESCRIPT>水平布局ALV</DESCRIPT>
+      <LANGUAGE>E</LANGUAGE>
+      <DESCRIPT>Horizontal Layout ALV</DESCRIPT>
       <TYPE>N</TYPE>
       <NEXTSCREEN>9000</NEXTSCREEN>
       <LINES>041</LINES>
@@ -544,8 +543,8 @@
      <HEADER>
       <PROGRAM>SAPLZFG_ALV_MULTI</PROGRAM>
       <SCREEN>9001</SCREEN>
-      <LANGUAGE>1</LANGUAGE>
-      <DESCRIPT>9000子屏幕</DESCRIPT>
+      <LANGUAGE>E</LANGUAGE>
+      <DESCRIPT>9000 subscreen</DESCRIPT>
       <TYPE>I</TYPE>
       <NEXTSCREEN>9001</NEXTSCREEN>
       <LINES>200</LINES>
@@ -601,8 +600,8 @@
      <HEADER>
       <PROGRAM>SAPLZFG_ALV_MULTI</PROGRAM>
       <SCREEN>9010</SCREEN>
-      <LANGUAGE>1</LANGUAGE>
-      <DESCRIPT>垂直布局ALV</DESCRIPT>
+      <LANGUAGE>E</LANGUAGE>
+      <DESCRIPT>Vertical Layout ALV</DESCRIPT>
       <TYPE>N</TYPE>
       <NEXTSCREEN>9010</NEXTSCREEN>
       <LINES>200</LINES>

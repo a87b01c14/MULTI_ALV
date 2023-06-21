@@ -10,28 +10,20 @@
     <LDBNAME>D$S</LDBNAME>
     <UCCHECK>X</UCCHECK>
    </PROGDIR>
-   <I18N_TPOOL>
+   <TPOOL>
     <item>
-     <LANGUAGE>E</LANGUAGE>
-     <TEXTPOOL>
-      <item>
-       <ID>R</ID>
-      </item>
-      <item>
-       <ID>S</ID>
-       <KEY>P_EMBEED</KEY>
-       <ENTRY>Embeeded Error Log</ENTRY>
-       <LENGTH>26</LENGTH>
-      </item>
-      <item>
-       <ID>S</ID>
-       <KEY>P_NOTEMB</KEY>
-       <ENTRY>Popup Error Log</ENTRY>
-       <LENGTH>23</LENGTH>
-      </item>
-     </TEXTPOOL>
+     <ID>S</ID>
+     <KEY>P_EMBEED</KEY>
+     <ENTRY>Embeeded Error Log</ENTRY>
+     <LENGTH>26</LENGTH>
     </item>
-   </I18N_TPOOL>
+    <item>
+     <ID>S</ID>
+     <KEY>P_NOTEMB</KEY>
+     <ENTRY>Popup Error Log</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+   </TPOOL>
   </asx:values>
  </asx:abap>
 </abapGit>

@@ -1,7 +1,7 @@
 *&---------------------------------------------------------------------*
 *& Report ZDEMO_ALV_MULTI
 *&---------------------------------------------------------------------*
-*& 添加按钮
+*& add custom button
 *&---------------------------------------------------------------------*
 REPORT zdemo_alv_multi04.
 DATA: lo_alv_multi TYPE REF TO zcl_alv_multi,
@@ -28,7 +28,7 @@ FORM frm_before_show_alv1 USING is_alvs TYPE zcl_alv_multi=>ty_alvs.
         WHEN 1.
           is_alvs-falv->column( 'CLIENT' )->set_tech( abap_true ).
           is_alvs-falv->column( 'NATION' )->set_tech( abap_true ).
-          is_alvs-falv->column( 'ADDRNUMBER' )->set_text( '地址' ).
+          is_alvs-falv->column( 'ADDRNUMBER' )->set_text( 'ADDRESS' ).
           is_alvs-falv->add_button(
             EXPORTING
               iv_function = 'POST'
@@ -36,7 +36,7 @@ FORM frm_before_show_alv1 USING is_alvs TYPE zcl_alv_multi=>ty_alvs.
 *             IV_QUICKINFO =
 *             IV_BUTN_TYPE =
 *             IV_DISABLED =
-              iv_text     = '过账'
+              iv_text     = 'POST'
 *             IV_CHECKED  =
           ).
         WHEN 2.

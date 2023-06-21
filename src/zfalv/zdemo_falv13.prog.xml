@@ -72,18 +72,12 @@
      </FLOW_LOGIC>
     </item>
    </DYNPROS>
-   <I18N_TPOOL>
+   <TPOOL>
     <item>
-     <LANGUAGE>E</LANGUAGE>
-     <TEXTPOOL>
-      <item>
-       <ID>R</ID>
-       <ENTRY>FALV: Mix Demo</ENTRY>
-       <LENGTH>14</LENGTH>
-      </item>
-     </TEXTPOOL>
+     <ID>R</ID>
+     <LENGTH>14</LENGTH>
     </item>
-   </I18N_TPOOL>
+   </TPOOL>
   </asx:values>
  </asx:abap>
 </abapGit>

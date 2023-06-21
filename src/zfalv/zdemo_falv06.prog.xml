@@ -10,22 +10,14 @@
     <LDBNAME>D$S</LDBNAME>
     <UCCHECK>X</UCCHECK>
    </PROGDIR>
-   <I18N_TPOOL>
+   <TPOOL>
     <item>
-     <LANGUAGE>E</LANGUAGE>
-     <TEXTPOOL>
-      <item>
-       <ID>R</ID>
-      </item>
-      <item>
-       <ID>S</ID>
-       <KEY>P_USEMAR</KEY>
-       <ENTRY>Use Mark Field?</ENTRY>
-       <LENGTH>23</LENGTH>
-      </item>
-     </TEXTPOOL>
+     <ID>S</ID>
+     <KEY>P_USEMAR</KEY>
+     <ENTRY>Use Mark Field?</ENTRY>
+     <LENGTH>23</LENGTH>
     </item>
-   </I18N_TPOOL>
+   </TPOOL>
   </asx:values>
  </asx:abap>
 </abapGit>

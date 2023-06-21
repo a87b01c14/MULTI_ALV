@@ -10,52 +10,44 @@
     <LDBNAME>D$S</LDBNAME>
     <UCCHECK>X</UCCHECK>
    </PROGDIR>
-   <I18N_TPOOL>
+   <TPOOL>
     <item>
-     <LANGUAGE>E</LANGUAGE>
-     <TEXTPOOL>
-      <item>
-       <ID>R</ID>
-      </item>
-      <item>
-       <ID>S</ID>
-       <KEY>P_COLEND</KEY>
-       <ENTRY>End column</ENTRY>
-       <LENGTH>18</LENGTH>
-      </item>
-      <item>
-       <ID>S</ID>
-       <KEY>P_COLST</KEY>
-       <ENTRY>Start column</ENTRY>
-       <LENGTH>20</LENGTH>
-      </item>
-      <item>
-       <ID>S</ID>
-       <KEY>P_DEFAU</KEY>
-       <ENTRY>Default size</ENTRY>
-       <LENGTH>20</LENGTH>
-      </item>
-      <item>
-       <ID>S</ID>
-       <KEY>P_ROWEND</KEY>
-       <ENTRY>End row</ENTRY>
-       <LENGTH>15</LENGTH>
-      </item>
-      <item>
-       <ID>S</ID>
-       <KEY>P_ROWST</KEY>
-       <ENTRY>Start row</ENTRY>
-       <LENGTH>17</LENGTH>
-      </item>
-      <item>
-       <ID>S</ID>
-       <KEY>P_SET</KEY>
-       <ENTRY>Customized size</ENTRY>
-       <LENGTH>23</LENGTH>
-      </item>
-     </TEXTPOOL>
+     <ID>S</ID>
+     <KEY>P_COLEND</KEY>
+     <ENTRY>End column</ENTRY>
+     <LENGTH>18</LENGTH>
     </item>
-   </I18N_TPOOL>
+    <item>
+     <ID>S</ID>
+     <KEY>P_COLST</KEY>
+     <ENTRY>Start column</ENTRY>
+     <LENGTH>20</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_DEFAU</KEY>
+     <ENTRY>Default size</ENTRY>
+     <LENGTH>20</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_ROWEND</KEY>
+     <ENTRY>End row</ENTRY>
+     <LENGTH>15</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_ROWST</KEY>
+     <ENTRY>Start row</ENTRY>
+     <LENGTH>17</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_SET</KEY>
+     <ENTRY>Customized size</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+   </TPOOL>
   </asx:values>
  </asx:abap>
 </abapGit>

@@ -74,18 +74,13 @@
      </FLOW_LOGIC>
     </item>
    </DYNPROS>
-   <I18N_TPOOL>
+   <TPOOL>
     <item>
-     <LANGUAGE>E</LANGUAGE>
-     <TEXTPOOL>
-      <item>
-       <ID>R</ID>
-       <ENTRY>FALV: Split container on custom container screen</ENTRY>
-       <LENGTH>48</LENGTH>
-      </item>
-     </TEXTPOOL>
+     <ID>R</ID>
+     <ENTRY>FALV: Split container on custom container screen</ENTRY>
+     <LENGTH>48</LENGTH>
     </item>
-   </I18N_TPOOL>
+   </TPOOL>
   </asx:values>
  </asx:abap>
 </abapGit>

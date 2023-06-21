@@ -1,7 +1,7 @@
 *&---------------------------------------------------------------------*
 *& Report ZDEMO_ALV_MULTI
 *&---------------------------------------------------------------------*
-*& 列处理&alv toolbar隐藏
+*& modify columns & hide alv toolbar
 *&---------------------------------------------------------------------*
 REPORT zdemo_alv_multi03.
 DATA: lo_alv_multi TYPE REF TO zcl_alv_multi,
@@ -18,7 +18,7 @@ START-OF-SELECTION.
     it_alvs               = VALUE #( ( title = 'ADRC'
                                        it_hide = VALUE #( ( fieldname = 'CLIENT' )
                                                           ( fieldname = 'NATION' ) )
-                                       it_text = VALUE #( ( fieldname = 'ADDRNUMBER' text = '地址ABC') )
+                                       it_text = VALUE #( ( fieldname = 'ADDRNUMBER' text = 'ADDRESS ABC') )
                                        table = REF #( lt_table ) )
                                      ( title = 'USR01' table = REF #( lt_usr01 ) )
                                      ( title = 'USR21' table = REF #( lt_usr21 ) ) ) ).
@@ -30,7 +30,7 @@ FORM frm_before_show_alv1 USING is_alvs TYPE zcl_alv_multi=>ty_alvs.
         WHEN 1.
 *          is_alvs-falv->column( 'CLIENT' )->set_tech( abap_true ).
 *          is_alvs-falv->column( 'NATION' )->set_tech( abap_true ).
-*          is_alvs-falv->column( 'ADDRNUMBER' )->set_text( '地址' ).
+*          is_alvs-falv->column( 'ADDRNUMBER' )->set_text( 'ADDRESS' ).
           is_alvs-falv->layout->set_no_toolbar( abap_true ).
         WHEN 2.
           is_alvs-falv->column( 'MANDT' )->set_tech( abap_true ).
