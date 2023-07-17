@@ -18,7 +18,7 @@ START-OF-SELECTION.
     it_alvs               = VALUE #( ( title = 'ADRC'
                                        it_hide = VALUE #( ( fieldname = 'CLIENT' )
                                                           ( fieldname = 'NATION' ) )
-                                       it_text = VALUE #( ( fieldname = 'ADDRNUMBER' text = 'ADDRESS ABC') )
+                                       it_text = VALUE #( ( fieldname = 'ADDRNUMBER' text = 'ADDRESS NUMBER') )
                                        table = REF #( lt_table ) )
                                      ( title = 'USR01' table = REF #( lt_usr01 ) )
                                      ( title = 'USR21' table = REF #( lt_usr21 ) ) ) ).
