@@ -223,6 +223,9 @@ CLASS zcl_falv DEFINITION
         context_menu_request       TYPE slis_formname VALUE 'CONTEXT_MENU_REQUEST',
         toolbar_menu_selected      TYPE slis_formname VALUE 'TOOLBAR_MENU_SELECTED',
         request_data               TYPE slis_formname VALUE 'REQUEST_DATA',
+        "! Event called just after method <strong>SET_TABLE_FOR_FIRST_DISPLAY</strong> is called internally.
+        "! Can be used for example to setup merging of cells
+        before_first_display       TYPE slis_formname VALUE 'BEFORE_FIRST_DISPLAY',
       END OF events .
     DATA cb_after_refresh TYPE  slis_formname VALUE 'FRM_AFTER_REFRESH'.
     DATA cb_after_user_command TYPE  slis_formname VALUE 'FRM_AFTER_USER_COMMAND'.
@@ -264,8 +267,13 @@ CLASS zcl_falv DEFINITION
     DATA cb_context_menu_request TYPE  slis_formname VALUE 'FRM_CONTEXT_MENU_REQUEST'.
     DATA cb_toolbar_menu_selected TYPE  slis_formname VALUE 'FRM_TOOLBAR_MENU_SELECTED'.
     DATA cb_request_data TYPE  slis_formname VALUE 'FRM_REQUEST_DATA'.
+    DATA cb_before_first_display TYPE  slis_formname VALUE 'FRM_BEFORE_FIRST_DISPLAY'.
 * add by yu.xiaosan 20230525 events callback form end
-
+    EVENTS at_set_pf_status .
+    EVENTS at_set_title .
+    "! Event called just after method <strong>SET_TABLE_FOR_FIRST_DISPLAY</strong> is called internally.
+    "! Can be used for example to setup merging of cells
+    EVENTS before_first_display .
     CLASS-METHODS create
       IMPORTING
         VALUE(i_parent)          TYPE REF TO cl_gui_container OPTIONAL
@@ -530,6 +538,28 @@ CLASS zcl_falv DEFINITION
         REDEFINITION .
     METHODS set_frontend_layout
         REDEFINITION .
+    METHODS set_merge_horizontally
+      IMPORTING
+        !row           TYPE i
+        !tab_col_merge TYPE lvc_t_co01 .
+    METHODS set_merge_vertically
+      IMPORTING
+        !row           TYPE i
+        !tab_col_merge TYPE lvc_t_co01 .
+*  methods Z_DISPLAY .
+    METHODS set_cell_style
+      IMPORTING
+        !row    TYPE i OPTIONAL
+        !col    TYPE i OPTIONAL
+        !style  TYPE lvc_style
+        !style2 TYPE lvc_style OPTIONAL .
+    METHODS set_fixed_col_row
+      IMPORTING
+        !col TYPE i
+        !row TYPE i .
+    METHODS init_cell_styles .
+
+    METHODS redraw_after_merging_change.
   PROTECTED SECTION.
 
 
@@ -543,9 +573,7 @@ CLASS zcl_falv DEFINITION
     DATA application_log_embedded TYPE abap_bool .
     DATA subclass_type TYPE REF TO cl_abap_typedescr .
 
-    EVENTS at_set_pf_status .
-    EVENTS at_set_title .
-
+    METHODS evf_before_first_display FOR EVENT before_first_display OF zcl_falv.
     METHODS evf_btn_click
       FOR EVENT button_click OF cl_gui_alv_grid
       IMPORTING
@@ -731,6 +759,7 @@ CLASS zcl_falv DEFINITION
     CLASS-DATA created_from_factory TYPE abap_bool .
     DATA top_of_page_doc TYPE REF TO cl_dd_document .
     DATA top_of_page_visible_at_start TYPE abap_bool .
+    DATA call_redraw_after_merging TYPE abap_bool.
     DATA repid TYPE sy-repid .
     DATA mt_events TYPE slis_t_event.
 
@@ -818,6 +847,7 @@ CLASS zcl_falv DEFINITION
     METHODS create_ex_result_falv
       RETURNING
         VALUE(er_result_table) TYPE REF TO cl_salv_ex_result_data_table .
+    METHODS raise_before_first_display.
 ENDCLASS.
 
 
@@ -1310,6 +1340,7 @@ CLASS zcl_falv IMPLEMENTATION.
     SET HANDLER iv_falv->evf_context_menu_request FOR iv_falv.
     SET HANDLER iv_falv->evf_toolbar_menu_selected FOR iv_falv.
     SET HANDLER iv_falv->evf_request_data FOR iv_falv.
+    SET HANDLER iv_falv->evf_before_first_display FOR iv_falv.
 
     iv_falv->set_delay_change_selection(
       EXPORTING
@@ -1326,6 +1357,7 @@ CLASS zcl_falv IMPLEMENTATION.
         OTHERS = 0 ).
 
   ENDMETHOD.
+
 
   METHOD set_events.
     DATA: ls_events TYPE slis_alv_event.
@@ -1411,9 +1443,12 @@ CLASS zcl_falv IMPLEMENTATION.
           iv_falv->cb_toolbar_menu_selected = ls_events-form.
         WHEN events-request_data.
           iv_falv->cb_request_data = ls_events-form.
+        WHEN events-before_first_display.
+          iv_falv->cb_before_first_display = ls_events-form.
       ENDCASE.
     ENDLOOP.
   ENDMETHOD.
+
 
   METHOD delete_all_buttons.
     layout->delete_all_buttons = abap_true.
@@ -1511,6 +1546,7 @@ CLASS zcl_falv IMPLEMENTATION.
           too_many_lines                = 3
           OTHERS                        = 4 ).
       IF sy-subrc EQ 0.
+        raise_before_first_display( ).
         IF layout->delete_all_buttons EQ abap_true.
           delete_all_buttons( toolbar_exceptions ).
         ENDIF.
@@ -1569,23 +1605,23 @@ CLASS zcl_falv IMPLEMENTATION.
 
 
   METHOD evf_after_refresh.
-    PERFORM (cb_after_refresh) IN PROGRAM (repid) IF FOUND USING me.       "ZCL_SALV
+    PERFORM (cb_after_refresh) IN PROGRAM (repid) IF FOUND USING me.       "ZCL_FALV
   ENDMETHOD.
 
 
   METHOD evf_after_user_command.
-    PERFORM (cb_after_user_command) IN PROGRAM (repid) IF FOUND USING me       "ZCL_SALV
+    PERFORM (cb_after_user_command) IN PROGRAM (repid) IF FOUND USING me       "ZCL_FALV
                                                                      e_ucomm. "SY-UCOMM
   ENDMETHOD.
 
 
   METHOD evf_at_set_pf_status.
-    PERFORM (cb_at_set_pf_status) IN PROGRAM (repid) IF FOUND USING me.       "ZCL_SALV
+    PERFORM (cb_at_set_pf_status) IN PROGRAM (repid) IF FOUND USING me.       "ZCL_FALV
   ENDMETHOD.
 
 
   METHOD evf_at_set_title.
-    PERFORM (cb_at_set_pf_status) IN PROGRAM (repid) IF FOUND USING me.       "ZCL_SALV
+    PERFORM (cb_at_set_title) IN PROGRAM (repid) IF FOUND USING me.       "ZCL_FALV
   ENDMETHOD.
 
 
@@ -1634,50 +1670,50 @@ CLASS zcl_falv IMPLEMENTATION.
 
 
   METHOD evf_before_user_command.
-    PERFORM (cb_before_user_command) IN PROGRAM (repid) IF FOUND USING me       "ZCL_SALV
+    PERFORM (cb_before_user_command) IN PROGRAM (repid) IF FOUND USING me       "ZCL_FALV
                                                                       e_ucomm. "SY-UCOMM
   ENDMETHOD.
 
 
   METHOD evf_btn_click.
-    PERFORM (cb_btn_click) IN PROGRAM (repid) IF FOUND USING me        "ZCL_SALV
+    PERFORM (cb_btn_click) IN PROGRAM (repid) IF FOUND USING me        "ZCL_FALV
                                                             es_col_id "LVC_S_COL
                                                             es_row_no."LVC_S_ROID
   ENDMETHOD.
 
 
   METHOD evf_click_col_header.
-    PERFORM (cb_click_col_header) IN PROGRAM (repid) IF FOUND USING me     "ZCL_SALV
+    PERFORM (cb_click_col_header) IN PROGRAM (repid) IF FOUND USING me     "ZCL_FALV
                                                                    col_id."C
   ENDMETHOD.
 
 
   METHOD evf_click_row_col.
-    PERFORM (cb_click_row_col) IN PROGRAM (repid) IF FOUND USING me     "ZCL_SALV
+    PERFORM (cb_click_row_col) IN PROGRAM (repid) IF FOUND USING me     "ZCL_FALV
                                                                 col_id "C
                                                                 row_id."C
   ENDMETHOD.
 
 
   METHOD evf_context_menu.
-    PERFORM (cb_context_menu) IN PROGRAM (repid) IF FOUND USING me.     "ZCL_SALV
+    PERFORM (cb_context_menu) IN PROGRAM (repid) IF FOUND USING me.     "ZCL_FALV
   ENDMETHOD.
 
 
   METHOD evf_context_menu_selected.
-    PERFORM (cb_context_menu_selected) IN PROGRAM (repid) IF FOUND USING me    "ZCL_SALV
+    PERFORM (cb_context_menu_selected) IN PROGRAM (repid) IF FOUND USING me    "ZCL_FALV
                                                                         fcode."C
   ENDMETHOD.
 
 
   METHOD evf_context_menu_request.
-    PERFORM (cb_context_menu_request) IN PROGRAM (repid) IF FOUND USING me       "ZCL_SALV
+    PERFORM (cb_context_menu_request) IN PROGRAM (repid) IF FOUND USING me       "ZCL_FALV
                                                                        e_object."CL_CTMENU
   ENDMETHOD.
 
 
   METHOD evf_data_changed.
-    PERFORM (cb_data_changed) IN PROGRAM (repid) IF FOUND USING me              "ZCL_SALV
+    PERFORM (cb_data_changed) IN PROGRAM (repid) IF FOUND USING me              "ZCL_FALV
                                                                er_data_changed "CL_ALV_CHANGED_DATA_PROTOCOL
                                                                e_onf4          "CHAR01
                                                                e_onf4_before   "CHAR01
@@ -1687,7 +1723,7 @@ CLASS zcl_falv IMPLEMENTATION.
 
 
   METHOD evf_data_changed_finished.
-    PERFORM (cb_data_changed_finished) IN PROGRAM (repid) IF FOUND USING me            "ZCL_SALV
+    PERFORM (cb_data_changed_finished) IN PROGRAM (repid) IF FOUND USING me            "ZCL_FALV
                                                                         e_modified    "CHAR01
                                                                         et_good_cells."LVC_T_MODI
   ENDMETHOD.
@@ -1724,29 +1760,29 @@ CLASS zcl_falv IMPLEMENTATION.
 
 
   METHOD evf_dblclick_row_col.
-    PERFORM (cb_dblclick_row_col) IN PROGRAM (repid) IF FOUND USING me     "ZCL_SALV
+    PERFORM (cb_dblclick_row_col) IN PROGRAM (repid) IF FOUND USING me     "ZCL_FALV
                                                                    col_id "C
                                                                    row_id."C
   ENDMETHOD.
 
 
   METHOD evf_delayed_callback.
-    PERFORM (cb_delayed_callback) IN PROGRAM (repid) IF FOUND USING me."ZCL_SALV
+    PERFORM (cb_delayed_callback) IN PROGRAM (repid) IF FOUND USING me."ZCL_FALV
   ENDMETHOD.
 
 
   METHOD evf_delayed_changed_sel_call.
-    PERFORM (cb_delayed_changed_sel_call) IN PROGRAM (repid) IF FOUND USING me."ZCL_SALV
+    PERFORM (cb_delayed_changed_sel_call) IN PROGRAM (repid) IF FOUND USING me."ZCL_FALV
   ENDMETHOD.
 
 
   METHOD evf_delayed_change_selection.
-    PERFORM (cb_delayed_change_selection) IN PROGRAM (repid) IF FOUND USING me."ZCL_SALV
+    PERFORM (cb_delayed_change_selection) IN PROGRAM (repid) IF FOUND USING me."ZCL_FALV
   ENDMETHOD.
 
 
   METHOD evf_delayed_move_current_cell.
-    PERFORM (cb_delayed_move_current_cell) IN PROGRAM (repid) IF FOUND USING me."ZCL_SALV
+    PERFORM (cb_delayed_move_current_cell) IN PROGRAM (repid) IF FOUND USING me."ZCL_FALV
   ENDMETHOD.
 
 
@@ -1939,7 +1975,7 @@ CLASS zcl_falv IMPLEMENTATION.
         e_ucomm = '%SC+'.
         set_function_code( CHANGING c_ucomm = e_ucomm ).
       WHEN OTHERS.
-        PERFORM (cb_user_command) IN PROGRAM (repid) IF FOUND USING me       "ZCL_SALV
+        PERFORM (cb_user_command) IN PROGRAM (repid) IF FOUND USING me       "ZCL_FALV
                                                                    e_ucomm. "SY-UCOMM
     ENDCASE.
   ENDMETHOD.
@@ -1989,87 +2025,23 @@ CLASS zcl_falv IMPLEMENTATION.
     ls_cur_cell-col_id-fieldname = ls_lvc_col-fieldname.
     ls_cur_cell-row_id-index = ls_lvc_row-index.
 
-    DATA: ls_hyper_entry    TYPE string,
-          ls_dropdown_entry TYPE string,
-          lt_drdn           TYPE lvc_t_drop.
-
-    IF grid->r_salv_adapter IS BOUND.
-      DATA:
-        lr_display TYPE REF TO if_salv_display_adapter.
-
-      lr_display ?= grid->r_salv_adapter.
-
-      DATA:
-        lr_columns TYPE REF TO cl_salv_columns_list.
-
-      lr_columns ?= lr_display->get_columns( ).
-
-      ls_hyper_entry = lr_columns->get_hyperlink_entry_column( ).
-      ls_dropdown_entry = lr_columns->get_dropdown_entry_column( ).
-
-      DATA:
-        lr_om TYPE REF TO cl_salv_table.
-
-      lr_om ?= grid->r_salv_adapter->r_controller->r_model.
-
-      DATA:
-        lr_functional_settings TYPE REF TO cl_salv_functional_settings.
-
-      lr_functional_settings = lr_om->get_functional_settings( ).
-
-      DATA:
-        lr_dropdowns TYPE REF TO cl_salv_dropdowns.
-
-***<<<Y7AK057779
-      TRY.
-          lr_dropdowns = lr_functional_settings->get_dropdowns( ).
-
-          lt_drdn = cl_salv_controller_metadata=>get_dropdowns( lr_dropdowns ).
-        CATCH cx_salv_method_not_supported.
-          CLEAR sy-subrc.
-      ENDTRY.
-***>>>Y7AK057779
-
-*>>> Y7AK058143
-      DATA:
-        lr_tol TYPE REF TO cl_salv_form_element,
-        lr_eol TYPE REF TO cl_salv_form_element.
-*<<< Y7AK058143
-
-      lr_tol = lr_om->get_top_of_list( ).
-      lr_eol = lr_om->get_end_of_list( ).
-    ENDIF.
-
-*>>> Y7AK058143
-    DATA:
-      lr_top_of_list TYPE REF TO cl_salv_form,
-      lr_end_of_list TYPE REF TO cl_salv_form.
-
-    CREATE OBJECT lr_top_of_list
-      EXPORTING
-        r_content = lr_tol.
-
-    CREATE OBJECT lr_end_of_list
-      EXPORTING
-        r_content = lr_eol.
-*<<< Y7AK058143
-
     er_result_table = cl_salv_ex_util=>factory_result_data_table(
-      t_selected_rows        = lt_lvc_row
-      t_selected_columns     = lt_sel_cols
-      t_selected_cells       = lt_sel_cells
-      r_data                 = grid->mt_outtab
-      s_layout               = grid->m_cl_variant->ms_layout
-      t_fieldcatalog         = grid->m_cl_variant->mt_fieldcatalog
-      t_sort                 = grid->m_cl_variant->mt_sort
-      t_filter               = grid->m_cl_variant->mt_filter
-      t_hyperlinks           = grid->mt_hyperlinks
-      s_current_cell         = ls_cur_cell
-      hyperlink_entry_column = ls_hyper_entry
-      dropdown_entry_column  = ls_dropdown_entry
-      r_top_of_list          = lr_top_of_list
-      r_end_of_list          = lr_end_of_list
-      t_dropdown_values      = lt_drdn ).
+      t_selected_rows    = lt_lvc_row
+      t_selected_columns = lt_sel_cols
+      t_selected_cells   = lt_sel_cells
+      r_data             = grid->mt_outtab
+      s_layout           = grid->m_cl_variant->ms_layout
+      t_fieldcatalog     = grid->m_cl_variant->mt_fieldcatalog
+      t_sort             = grid->m_cl_variant->mt_sort
+      t_filter           = grid->m_cl_variant->mt_filter
+      t_hyperlinks       = grid->mt_hyperlinks
+      s_current_cell     = ls_cur_cell
+*     hyperlink_entry_column = ls_hyper_entry
+*     dropdown_entry_column  = ls_dropdown_entry
+*     r_top_of_list      = lr_top_of_list
+*     r_end_of_list      = lr_end_of_list
+*     t_dropdown_values  = lt_drdn
+    ).
 
   ENDMETHOD.
 
@@ -2946,5 +2918,173 @@ CLASS zcl_falv IMPLEMENTATION.
       CHANGING
         ct_table          = <table>
     ).
+  ENDMETHOD.
+
+
+  METHOD set_merge_vertically.
+* https://tricktresor.de/blog/zellen-verbinden/
+
+* ROW - Zeile deren Spalten zusammengeführt werden sollen
+* tab_col_merge - Spalten, die zusammengeführt werden sollen
+    FIELD-SYMBOLS <data> TYPE lvc_s_data.
+    DATA outputlen TYPE i.
+
+    DATA(cols) = tab_col_merge.
+    SORT cols.
+
+* Die Spalten, die zusammengeführt werden sollen
+    LOOP AT cols INTO DATA(col) WHERE col_id > 0.
+* ein paar Prüfungen
+      IF col-outputlen <= col-col_id.
+        CONTINUE.
+      ENDIF.
+      outputlen = col-outputlen - col-col_id.
+      LOOP AT mt_data ASSIGNING <data>
+           WHERE row_pos = row  AND
+                 ( col_pos BETWEEN col-col_id AND
+                                   col-outputlen ).
+* Setze wie weit soll gemerged werden Von Spalte in Länge
+* und zwar wird bei der 1 Spalte angefangen
+        IF <data>-col_pos = col-col_id.
+          <data>-mergevert = outputlen.
+* bei allen anderen, die zusammangehören
+* muss der Wert raus, da er aus der 1. Spalte kommt
+* und das mergekennzeichen muss auch weg !
+        ELSE.
+          CLEAR <data>-mergevert.
+*          CLEAR <data>-value.
+        ENDIF.
+      ENDLOOP.
+
+      call_redraw_after_merging = abap_true.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD set_merge_horizontally.
+* https://tricktresor.de/blog/zellen-verbinden/
+* ROW - Zeile deren Spalten zusammengeführt werden sollen
+* tab_col_merge - Spalten, die zusammengeführt werden sollen
+    FIELD-SYMBOLS <data> TYPE lvc_s_data.
+    DATA outputlen TYPE i.
+
+    DATA(cols) = tab_col_merge.
+
+    SORT cols.
+
+* Die Spalten, die zusammengeführt werden sollen
+    LOOP AT cols INTO DATA(col) WHERE col_id > 0.
+* ein paar Prüfungen
+      IF col-outputlen <= col-col_id.
+        CONTINUE.
+      ENDIF.
+      outputlen = col-outputlen - col-col_id.
+      LOOP AT mt_data ASSIGNING <data>
+           WHERE row_pos = row  AND
+                 ( col_pos BETWEEN col-col_id AND
+                                   col-outputlen ).
+* Setze wie weit soll gemerged werden Von Spalte in Länge
+* und zwar wird bei der 1 Spalte angefangen
+        IF <data>-col_pos = col-col_id.
+          <data>-mergehoriz = outputlen.
+* bei allen anderen, die zusammangehören
+* muss der Wert raus, da er aus der 1. Spalte kommt
+* und das mergekennzeichen muss auch weg !
+        ELSE.
+          CLEAR <data>-mergehoriz.
+          CLEAR <data>-value.
+        ENDIF.
+      ENDLOOP.
+
+    ENDLOOP.
+    call_redraw_after_merging = abap_true.
+  ENDMETHOD.
+
+
+  METHOD set_fixed_col_row.
+* https://tricktresor.de/blog/zellen-verbinden/
+    me->set_fixed_cols( col ).
+    me->set_fixed_rows( row ).
+    call_redraw_after_merging = abap_true.
+  ENDMETHOD.
+
+
+  METHOD set_cell_style.
+* https://tricktresor.de/blog/zellen-verbinden/
+    FIELD-SYMBOLS <data> TYPE lvc_s_data.
+    IF row IS INITIAL.
+      IF col IS INITIAL.
+* Beides leer -> nichts zu tun.
+        EXIT.
+      ELSE.
+* Nur Spalte setze komplette Spalte
+        LOOP AT mt_data ASSIGNING <data>
+              WHERE col_pos = col.
+          <data>-style  = <data>-style + style.
+          <data>-style2 = <data>-style2 + style2.
+        ENDLOOP.
+        IF sy-subrc EQ 0.
+          call_redraw_after_merging = abap_true.
+        ENDIF.
+      ENDIF.
+    ELSE.
+      IF col IS INITIAL.
+* Nur Zeile eingegeben -> komplette Zeile setzen
+        LOOP AT mt_data ASSIGNING <data>
+              WHERE row_pos = row.
+          <data>-style  = <data>-style + style.
+          <data>-style2 = <data>-style2 + style2.
+        ENDLOOP.
+        IF sy-subrc EQ 0.
+          call_redraw_after_merging = abap_true.
+        ENDIF.
+      ELSE.
+        READ TABLE mt_data ASSIGNING <data>
+            WITH KEY row_pos = row
+                     col_pos = col.
+        IF sy-subrc EQ 0.
+          <data>-style  = <data>-style + style.
+          <data>-style2 = <data>-style2 + style2.
+          call_redraw_after_merging = abap_true.
+        ELSE.
+          EXIT.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD redraw_after_merging_change.
+* https://tricktresor.de/blog/zellen-verbinden/
+    me->set_data_table( CHANGING data_table = mt_data[] ).
+    set_auto_redraw( enable = 1 ).
+
+  ENDMETHOD.
+
+
+  METHOD raise_before_first_display.
+
+    RAISE EVENT before_first_display.
+    IF call_redraw_after_merging EQ abap_true.
+      redraw_after_merging_change( ).
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD evf_before_first_display ##NEEDED.
+    PERFORM (cb_before_first_display) IN PROGRAM (repid) IF FOUND USING me.         "ZCL_FALV
+  ENDMETHOD.
+
+
+  METHOD init_cell_styles.
+* https://tricktresor.de/blog/zellen-verbinden/
+    FIELD-SYMBOLS <data> TYPE lvc_s_data.
+* Nur Spalte setze komplette Spalte
+    LOOP AT mt_data ASSIGNING <data>.
+      <data>-style = 0.
+    ENDLOOP.
+    call_redraw_after_merging = abap_true.
   ENDMETHOD.
 ENDCLASS.
