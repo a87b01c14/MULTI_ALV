@@ -314,49 +314,48 @@ CLASS lcl_screen_9010 IMPLEMENTATION.
       CREATE OBJECT go_container
         EXPORTING
           container_name = CONV char100( gc_cont_name_9010 ).
-    ENDIF.
-    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    "垂直布局ALV，需要splitter container
-    IF go_splitter IS NOT BOUND.
-      CREATE OBJECT go_splitter
-        EXPORTING
-          parent  = go_container
-          rows    = lines( go_alv->mt_alvs )
-          columns = 1.
+
+      """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+      "垂直布局ALV，需要splitter container
+      IF go_splitter IS NOT BOUND.
+        CREATE OBJECT go_splitter
+          EXPORTING
+            parent  = go_container
+            rows    = lines( go_alv->mt_alvs )
+            columns = 1.
+      ENDIF.
+
       lv_height = 100 / lines( go_alv->mt_alvs ).
+      LOOP AT go_alv->mt_alvs ASSIGNING FIELD-SYMBOL(<fs_alv>).
+        AT LAST.
+          lv_height = 100 - lv_height_sum.
+        ENDAT.
+        lv_counter += 1.
+        <fs_alv>-index = lv_counter.
+        lv_height_sum += lv_height.
+        go_splitter->set_row_height( id = lv_counter height = lv_height ).
+
+        ASSIGN <fs_alv>-table->* TO <fs_table>.
+        <fs_alv>-falv = zcl_falv=>create( EXPORTING i_parent = go_splitter->get_container( row = lv_counter column = 1 )
+                                                    i_repid = sy-cprog
+                                                    it_events = gt_events
+                                          CHANGING ct_table = <fs_table> ).
+        LOOP AT <fs_alv>-it_hide INTO DATA(ls_hide).
+          <fs_alv>-falv->column( ls_hide-fieldname )->set_tech( abap_true ).
+        ENDLOOP.
+        LOOP AT <fs_alv>-it_text INTO DATA(ls_text).
+          <fs_alv>-falv->column( ls_text-fieldname )->set_text( ls_text-text ).
+        ENDLOOP.
+        <fs_alv>-falv->layout->set_zebra( abap_true ).
+        <fs_alv>-falv->layout->set_cwidth_opt( abap_true ).
+        "Set Gui status to fully dynamic (no standard buttons of ALV Grid)
+        <fs_alv>-falv->gui_status->fully_dynamic = abap_true.
+        <fs_alv>-falv->layout->set_no_toolbar( abap_false ).
+        <fs_alv>-falv->layout->set_grid_title( <fs_alv>-title ).
+        go_alv->on_before_show_alv( <fs_alv> ).
+        <fs_alv>-falv->display( ).
+      ENDLOOP.
     ENDIF.
-
-
-    LOOP AT go_alv->mt_alvs ASSIGNING FIELD-SYMBOL(<fs_alv>).
-      AT LAST.
-        lv_height = 100 - lv_height_sum.
-      ENDAT.
-      lv_counter += 1.
-      <fs_alv>-index = lv_counter.
-      lv_height_sum += lv_height.
-      go_splitter->set_row_height( id = lv_counter height = lv_height ).
-
-      ASSIGN <fs_alv>-table->* TO <fs_table>.
-      <fs_alv>-falv = zcl_falv=>create( EXPORTING i_parent = go_splitter->get_container( row = lv_counter column = 1 )
-                                                  i_repid = sy-cprog
-                                                  it_events = gt_events
-                                        CHANGING ct_table = <fs_table> ).
-      LOOP AT <fs_alv>-it_hide INTO DATA(ls_hide).
-        <fs_alv>-falv->column( ls_hide-fieldname )->set_tech( abap_true ).
-      ENDLOOP.
-      LOOP AT <fs_alv>-it_text INTO DATA(ls_text).
-        <fs_alv>-falv->column( ls_text-fieldname )->set_text( ls_text-text ).
-      ENDLOOP.
-      <fs_alv>-falv->layout->set_zebra( abap_true ).
-      <fs_alv>-falv->layout->set_cwidth_opt( abap_true ).
-      "Set Gui status to fully dynamic (no standard buttons of ALV Grid)
-      <fs_alv>-falv->gui_status->fully_dynamic = abap_true.
-      <fs_alv>-falv->layout->set_no_toolbar( abap_false ).
-      <fs_alv>-falv->layout->set_grid_title( <fs_alv>-title ).
-      go_alv->on_before_show_alv( <fs_alv> ).
-      <fs_alv>-falv->display( ).
-    ENDLOOP.
-
     super->pbo_begin( ).
   ENDMETHOD.
 ENDCLASS.

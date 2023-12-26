@@ -925,6 +925,10 @@ CLASS ZCL_FALV_COLUMN IMPLEMENTATION.
       IF sy-subrc EQ 0.
         <field> = iv_value.
       ENDIF.
+      "ADD BY YUXS 20231023,转换例程不生效问题处理
+      IF iv_setting = 'CONVEXIT'.
+        CLEAR: <fcat>-tech_form, <fcat>-edit_mask.
+      ENDIF.
       falv->set_frontend_fieldcatalog( it_fieldcatalog = falv->fcat ).
     ENDIF.
   ENDMETHOD.
