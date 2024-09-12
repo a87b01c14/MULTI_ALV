@@ -852,7 +852,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_falv IMPLEMENTATION.
+CLASS ZCL_FALV IMPLEMENTATION.
 
 
   METHOD add_button.
@@ -1033,6 +1033,8 @@ CLASS zcl_falv IMPLEMENTATION.
     rv_falv->built_in_screen = built_in_screen.
     rv_falv->build_columns( ).
     rv_falv->layout = NEW zcl_falv_layout( rv_falv ).
+    rv_falv->layout->set_zebra( abap_true ).
+    rv_falv->layout->set_cwidth_opt( abap_true ).
 
     rv_falv->gui_status = NEW zcl_falv_dynamic_status( ).
 
@@ -1073,7 +1075,7 @@ CLASS zcl_falv IMPLEMENTATION.
     IF i_handle IS NOT INITIAL.
       rv_falv->variant-handle   = i_handle.
     ENDIF.
-    rv_falv->variant-report = i_repid.
+    rv_falv->variant-report = rv_falv->repid.
     rv_falv->variant-username = sy-uname.
   ENDMETHOD.
 
