@@ -1035,6 +1035,7 @@ CLASS ZCL_FALV IMPLEMENTATION.
     rv_falv->layout = NEW zcl_falv_layout( rv_falv ).
     rv_falv->layout->set_zebra( abap_true ).
     rv_falv->layout->set_cwidth_opt( abap_true ).
+    rv_falv->layout->set_sel_mode( 'A' ).
 
     rv_falv->gui_status = NEW zcl_falv_dynamic_status( ).
 
@@ -2310,8 +2311,12 @@ CLASS ZCL_FALV IMPLEMENTATION.
 
 
   METHOD refresh_toolbar.
+    CONSTANTS m_init_toolbar TYPE string VALUE 'M_INIT_TOOLBAR' ##NO_TEXT.
     CHECK cl_gui_alv_grid=>offline( ) IS INITIAL.
-    CHECK grid->m_init_toolbar EQ space.
+    ASSIGN grid->(m_init_toolbar) TO FIELD-SYMBOL(<init_toolbar>). "S/4 2023 compatible
+    IF <init_toolbar> IS ASSIGNED.
+      CHECK <init_toolbar> EQ space.
+    ENDIF.
     TRY.
         me->set_toolbar_interactive(  ).
       CATCH cx_root.
