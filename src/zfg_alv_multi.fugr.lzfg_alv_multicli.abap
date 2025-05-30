@@ -58,26 +58,26 @@ CLASS lcl_application IMPLEMENTATION.
   METHOD constructor.
 *   Local data.
     DATA ls_area TYPE bus_screen-area.
-
+    DATA lv_dynpro_number TYPE bus_screen-dynpro_number.
     CALL METHOD super->constructor.
-
-
 
     CASE gv_mode.
       WHEN zcl_alv_multi=>alv_mode-horizontal."水平布局
+        lv_dynpro_number = COND #( WHEN gv_no_toolbar = abap_true THEN gc_dynnr_9000 ELSE gc_dynnr_8000 ).
         CALL METHOD cl_bus_abstract_screen=>get_screen
           EXPORTING
             iv_program_name  = gc_program_name
-            iv_dynpro_number = gc_dynnr_9000
+            iv_dynpro_number = lv_dynpro_number
           IMPORTING
             ev_screen        = go_screen_9000.
 *   Register the event handlers.
         SET HANDLER on_process_after_input FOR go_screen_9000.
       WHEN zcl_alv_multi=>alv_mode-vertical."垂直布局
+        lv_dynpro_number = COND #( WHEN gv_no_toolbar = abap_true THEN gc_dynnr_9010 ELSE gc_dynnr_8010 ).
         CALL METHOD cl_bus_abstract_screen=>get_screen
           EXPORTING
             iv_program_name  = gc_program_name
-            iv_dynpro_number = gc_dynnr_9010
+            iv_dynpro_number = lv_dynpro_number
           IMPORTING
             ev_screen        = go_screen_9010.
 *   Register the event handlers.
@@ -95,6 +95,13 @@ CLASS lcl_application IMPLEMENTATION.
     CASE gv_mode.
       WHEN zcl_alv_multi=>alv_mode-horizontal."水平布局
         go_screen_9000->set_title( gv_title ).
+        IF gv_status_program IS NOT INITIAL AND gv_status_key IS NOT INITIAL.
+          go_screen_9000->set_status( iv_status_program = gv_status_program iv_status_key = gv_status_key ).
+        ENDIF.
+        go_screen_9000->set_save_enabled( gv_save_enabled ).
+        LOOP AT gt_function INTO DATA(ls_function).
+          go_screen_9000->set_function_code_enabled( iv_enabled = ls_function-enabled iv_function_code = ls_function-function_code ).
+        ENDLOOP.
         IF gv_popup = abap_true.
           CALL METHOD go_screen_9000->show_as_popup(
               iv_xstart = gv_start_row
@@ -106,6 +113,13 @@ CLASS lcl_application IMPLEMENTATION.
         ENDIF.
       WHEN zcl_alv_multi=>alv_mode-vertical.
         go_screen_9010->set_title( gv_title ).
+        IF gv_status_program IS NOT INITIAL AND gv_status_key IS NOT INITIAL.
+          go_screen_9010->set_status( iv_status_program = gv_status_program iv_status_key = gv_status_key ).
+        ENDIF.
+        go_screen_9010->set_save_enabled( gv_save_enabled ).
+        LOOP AT gt_function INTO ls_function.
+          go_screen_9010->set_function_code_enabled( iv_enabled = ls_function-enabled iv_function_code = ls_function-function_code ).
+        ENDLOOP.
         IF gv_popup = abap_true.
           CALL METHOD go_screen_9010->show_as_popup(
               iv_xstart = gv_start_row
@@ -197,6 +211,7 @@ CLASS lcl_application IMPLEMENTATION.
         ev_dispatched    = lv_dispatched.
 
     IF lv_dispatched IS INITIAL.
+      go_alv->on_process_after_input( iv_function_code ).
     ENDIF.
 
 
@@ -336,10 +351,10 @@ CLASS lcl_screen_9010 IMPLEMENTATION.
         go_splitter->set_row_height( id = lv_counter height = lv_height ).
 
         ASSIGN <fs_alv>-table->* TO <fs_table>.
-        <fs_alv>-falv = zcl_falv=>create( EXPORTING i_parent = go_splitter->get_container( row = lv_counter column = 1 )
-                                                    i_repid = sy-cprog
+        <fs_alv>-falv = zcl_falv=>create( EXPORTING i_parent  = go_splitter->get_container( row = lv_counter column = 1 )
+                                                    i_repid   = sy-cprog
                                                     it_events = gt_events
-                                          CHANGING ct_table = <fs_table> ).
+                                          CHANGING  ct_table  = <fs_table> ).
         LOOP AT <fs_alv>-it_hide INTO DATA(ls_hide).
           <fs_alv>-falv->column( ls_hide-fieldname )->set_tech( abap_true ).
         ENDLOOP.
@@ -367,12 +382,12 @@ FORM bus_screen_create USING iv_program_name TYPE bus_screen-program_name
                              iv_dynpro_number TYPE bus_screen-dynpro_number
                        CHANGING ev_screen TYPE any.         "#EC CALLED
   CASE iv_dynpro_number.
-    WHEN gc_dynnr_9000.
+    WHEN gc_dynnr_9000 OR gc_dynnr_8000.
       CREATE OBJECT ev_screen TYPE lcl_screen_9000
         EXPORTING
           iv_program_name  = iv_program_name
           iv_dynpro_number = iv_dynpro_number.
-    WHEN gc_dynnr_9010.
+    WHEN gc_dynnr_9010 OR gc_dynnr_8010.
       CREATE OBJECT ev_screen TYPE lcl_screen_9010
         EXPORTING
           iv_program_name  = iv_program_name
