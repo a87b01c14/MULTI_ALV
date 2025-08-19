@@ -201,14 +201,17 @@ CLASS lcl_application IMPLEMENTATION.
 
     DATA lv_dispatched TYPE bu_boolean.
 
-
     CALL METHOD clear_message.
 
-    CALL METHOD dispatch
-      EXPORTING
-        iv_function_code = iv_function_code
-      IMPORTING
-        ev_dispatched    = lv_dispatched.
+    lv_dispatched = go_alv->on_process_before_input( iv_function_code ).
+
+    IF lv_dispatched IS INITIAL.
+      CALL METHOD dispatch
+        EXPORTING
+          iv_function_code = iv_function_code
+        IMPORTING
+          ev_dispatched    = lv_dispatched.
+    ENDIF.
 
     IF lv_dispatched IS INITIAL.
       go_alv->on_process_after_input( iv_function_code ).

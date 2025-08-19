@@ -54,11 +54,13 @@ public section.
   data MV_STATUS_PROGRAM type BUS_SCREEN-PROGRAM_NAME .
   data MV_STATUS_KEY type BUS_SCREEN-STATUS_KEY .
   data MT_FUNCTION type TT_FUNCTION_ENABLED .
+  data CB_PROCESS_BEFORE_INPUT type SLIS_FORMNAME value 'FRM_PROCESS_BEFORE_INPUT' ##NO_TEXT.
   data CB_PROCESS_AFTER_INPUT type SLIS_FORMNAME value 'FRM_PROCESS_AFTER_INPUT' ##NO_TEXT.
   data CB_BEFORE_SHOW_ALV type SLIS_FORMNAME value 'FRM_BEFORE_SHOW_ALV' ##NO_TEXT.
   constants:
     BEGIN OF events,
         before_show_alv     TYPE slis_formname VALUE 'BEFORE_SHOW_ALV',
+        process_before_input TYPE slis_formname VALUE 'PROCESS_BEFORE_INPUT',
         process_after_input TYPE slis_formname VALUE 'PROCESS_AFTER_INPUT',
       END OF events .
 
@@ -67,6 +69,7 @@ public section.
       value(IV_POPUP) type ABAP_BOOL optional
       value(IV_TITLE) type LVC_TITLE optional
       value(IV_CB_BEFORE_SHOW_ALV) type NA_RONAM optional
+      value(IV_CB_PROCESS_BEFORE_INPUT) type NA_RONAM optional
       value(IV_CB_PROCESS_AFTER_INPUT) type NA_RONAM optional
       value(IV_MODE) type TY_ALV_MODE default ALV_MODE-HORIZONTAL
       value(IT_EVENTS) type SLIS_T_EVENT optional
@@ -81,6 +84,11 @@ public section.
       value(IV_START_COLUMN) type I optional
       value(IV_END_ROW) type I optional
       value(IV_END_COLUMN) type I optional .
+  methods ON_PROCESS_BEFORE_INPUT
+    importing
+      value(IV_FUNCTION_CODE) type BUS_SCREEN-FUNCTION_CODE
+    returning
+      value(RV_DISPATCHED) type BU_BOOLEAN .
   methods ON_PROCESS_AFTER_INPUT
     importing
       value(IV_FUNCTION_CODE) type BUS_SCREEN-FUNCTION_CODE .
@@ -118,6 +126,14 @@ CLASS ZCL_ALV_MULTI IMPLEMENTATION.
       READ TABLE it_events INTO DATA(ls_events) WITH KEY name = events-before_show_alv.
       IF sy-subrc = 0.
         cb_before_show_alv = ls_events-form.
+      ENDIF.
+    ENDIF.
+    IF iv_cb_process_before_input IS SUPPLIED.
+      cb_process_before_input = iv_cb_process_before_input.
+    ELSEIF it_events IS SUPPLIED.
+      READ TABLE it_events INTO ls_events WITH KEY name = events-process_before_input.
+      IF sy-subrc = 0.
+        cb_process_after_input = ls_events-form.
       ENDIF.
     ENDIF.
     IF iv_cb_process_after_input IS SUPPLIED.
@@ -177,5 +193,10 @@ CLASS ZCL_ALV_MULTI IMPLEMENTATION.
 
   METHOD on_process_after_input.
     PERFORM (cb_process_after_input) IN PROGRAM (sy-cprog) IF FOUND USING iv_function_code . "TYPE BUS_SCREEN-FUNCTION_CODE
+  ENDMETHOD.
+
+
+  METHOD ON_PROCESS_BEFORE_INPUT.
+    PERFORM (cb_process_before_input) IN PROGRAM (sy-cprog) IF FOUND USING iv_function_code CHANGING rv_dispatched. "TYPE BUS_SCREEN-FUNCTION_CODE
   ENDMETHOD.
 ENDCLASS.
